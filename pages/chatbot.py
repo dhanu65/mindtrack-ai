@@ -49,16 +49,15 @@ st.sidebar.page_link("app.py", label="🏠 App")
 st.sidebar.page_link("pages/chatbot.py", label="🤖 Chatbot")
 st.sidebar.page_link("pages/dashboard.py", label="📊 Dashboard")
 st.sidebar.page_link("pages/history.py", label="📜 History")
-# Logout
 if st.sidebar.button("Logout"):
     st.session_state.user = None
     st.switch_page("pages/login.py")
+
 # ---------- CONFIG ----------
-API_KEY = "gsk_......"
-MODEL_PATH = "dhanu65/mindtrack-emotion"
+API_KEY = "gsk_......."
+MODEL_PATH = "models/emotion_model"
 
-client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-
+client = Groq(api_key=API_KEY)
 
 # ---------- LOAD MODEL ----------
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
