@@ -1,0 +1,5 @@
+venv/
+__pycache__/
+*.pyc
+database/emotions.db
+models/emotion_model/model.safetensors
