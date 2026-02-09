@@ -2,7 +2,8 @@ import streamlit as st
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from database.db import init_db, save_result
-import random
+
+# ---------- LOGIN CHECK ----------
 if "user" not in st.session_state or st.session_state.user is None:
     st.switch_page("pages/login.py")
 
@@ -13,15 +14,10 @@ st.markdown("""
     padding-top: 2rem;
     max-width: 1100px;
 }
-
 h1, h2, h3 {
     text-align: center;
 }
-
-/* Hide default Streamlit page menu */
-[data-testid="stSidebarNav"] {
-    display: none;
-}
+[data-testid="stSidebarNav"] {display:none;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -43,20 +39,23 @@ st.sidebar.page_link("app.py", label="🏠 App")
 st.sidebar.page_link("pages/chatbot.py", label="🤖 Chatbot")
 st.sidebar.page_link("pages/dashboard.py", label="📊 Dashboard")
 st.sidebar.page_link("pages/history.py", label="📜 History")
-# Logout
+
+# Logout button
 if st.sidebar.button("Logout"):
     st.session_state.user = None
     st.switch_page("pages/login.py")
+
 # ---------- DATABASE ----------
 init_db()
 
 # ---------- MODEL ----------
-MODEL_PATH = "dhanu65/mindtrack-emotion"
+MODEL_PATH = "dhanu65/mindtrack-emotion"   # HuggingFace model
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
 model.eval()
 
+# ---------- UI ----------
 st.title("🧠 MindTrack AI")
 st.caption("AI-powered Emotion Detection System")
 
@@ -72,10 +71,13 @@ emotion_map = {
     5: "Normal"
 }
 
+# Session storage for result
+if "emotion_result" not in st.session_state:
+    st.session_state.emotion_result = None
+
+# ---------- ANALYSIS ----------
 if st.button("Analyze Emotion"):
-
-    if user_input.strip():
-
+    if user_input.strip() != "":
         inputs = tokenizer(
             user_input,
             return_tensors="pt",
@@ -89,7 +91,7 @@ if st.button("Analyze Emotion"):
         predicted_class = torch.argmax(outputs.logits).item()
         emotion = emotion_map[predicted_class]
 
-        # ---------- SMART CORRECTION ----------
+        # Rule correction
         text_lower = user_input.lower()
 
         if any(word in text_lower for word in [
@@ -107,65 +109,35 @@ if st.button("Analyze Emotion"):
         elif "not sad" in text_lower or "not depressed" in text_lower:
             emotion = "Normal"
 
-        # ---------- SAVE RESULT ----------
-        save_result(st.session_state.user, user_input, emotion)
+        save_result(user_input, emotion)
 
-
-        color_map = {
-            "Normal": "#16A34A",
-            "Stressed": "#F59E0B",
-            "Depressed": "#EF4444"
-        }
-
-        color = color_map.get(emotion, "#7C3AED")
-
-        # ---------- EMOTION DISPLAY ----------
-        st.markdown(
-            f"""
-            <div style='padding:12px;border-radius:10px;
-            background-color:{color};color:white;
-            text-align:center;font-size:18px;'>
-            Detected Emotion: {emotion}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # ---------- PERSONALIZED SUGGESTIONS ----------
-        suggestions = {
-            "Normal": [
-                "Keep maintaining your positive routine.",
-                "Consider helping someone else today.",
-                "Stay active and productive."
-            ],
-            "Stressed": [
-                "Take short breaks between tasks.",
-                "Try deep breathing for 2 minutes.",
-                "Consider a short walk to relax."
-            ],
-            "Depressed": [
-                "Talk to someone you trust.",
-                "Try writing your thoughts in a journal.",
-                "Consider seeking professional support."
-            ]
-        }
-
-        suggestion = random.choice(
-            suggestions.get(emotion, [])
-        )
-
-        st.markdown(
-            f"""
-            <div style='padding:12px;border-radius:10px;
-            background-color:#1F2933;color:white;
-            margin-top:10px;font-size:16px;'>
-            💡 Suggestion: {suggestion}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        st.session_state.emotion_result = emotion
 
     else:
         st.warning("Please enter text.")
 
-st.info("Use sidebar to open History or Dashboard pages.")
+# ---------- RESULT DISPLAY ----------
+if st.session_state.emotion_result:
+
+    color_map = {
+        "Normal": "#16A34A",
+        "Stressed": "#F59E0B",
+        "Depressed": "#EF4444"
+    }
+
+    color = color_map.get(
+        st.session_state.emotion_result, "#7C3AED"
+    )
+
+    st.markdown(
+        f"""
+        <div style='padding:12px;border-radius:10px;
+        background-color:{color};color:white;
+        text-align:center;font-size:18px;'>
+        Detected Emotion: {st.session_state.emotion_result}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+st.info("Use sidebar to open Chatbot, Dashboard, or History pages.")
