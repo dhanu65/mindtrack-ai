@@ -55,7 +55,7 @@ if st.sidebar.button("Logout"):
     st.switch_page("pages/login.py")
 # ---------- CONFIG ----------
 API_KEY = "gsk_......"
-MODEL_PATH = "models/emotion_model"
+MODEL_PATH = "dhanu65/mindtrack-emotion"
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 

@@ -51,7 +51,7 @@ if st.sidebar.button("Logout"):
 init_db()
 
 # ---------- MODEL ----------
-MODEL_PATH = "models/emotion_model"
+MODEL_PATH = "dhanu65/mindtrack-emotion"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
