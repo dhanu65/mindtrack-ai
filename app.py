@@ -109,7 +109,8 @@ if st.button("Analyze Emotion"):
         elif "not sad" in text_lower or "not depressed" in text_lower:
             emotion = "Normal"
 
-        save_result(user_input, emotion)
+        save_result(user_input, emotion, st.session_state.user)
+
 
         st.session_state.emotion_result = emotion
 
